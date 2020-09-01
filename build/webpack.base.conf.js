@@ -10,9 +10,9 @@ function resolve(dir) {
 
 let publicPath = ''
 if (process.env.NODE_ENV === 'production') {
-
+  publicPath = '/crmm' + config.dev.assetsPublicPath
 } else if (process.env.NODE_ENV === 'testing') {
-  publicPath = '/rfyyM' + config.dev.assetsPublicPath
+  publicPath = '/crmm' + config.dev.assetsPublicPath
 } else {
   publicPath = config.dev.assetsPublicPath
 }

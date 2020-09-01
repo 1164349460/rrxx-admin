@@ -52,14 +52,14 @@
     <div class="flex-between">
       <div>
         <el-button type="success" icon="el-icon-circle-plus-outline" size="small" plain @click="addCustomer">新增客户</el-button>
-        <el-upload class="upload-demo" :action="importCustomer">
+        <el-upload class="upload-demo" :action="importCustomer" :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
           <el-button size="small" icon="el-icon-upload2" plain type="warning">导入客户信息</el-button>
         </el-upload>
       </div>
       <Vpage :total="totalElements" :currPage="currPage" @currentChange="changePages"></Vpage>
     </div>
     <!-- 新增客户信息 -->
-    <el-dialog title="新增客户信息" :visible.sync="dialogAdd" width="700px" @before-close="closeDialog" center>
+    <el-dialog title="客户信息" :visible.sync="dialogAdd" width="700px" @before-close="closeDialog" center>
       <el-form :model="formAdd" label-width="150px" :rules="customerRules" class="cen-form cen-editor" ref="formDom">
         <el-form-item label="所属员工姓名：" prop="locatedName">
           <el-input v-model.trim="formAdd.locatedName" autocomplete="off" @focus="handleFocus" placeholder="所属员工姓名" maxlength="16" clearable></el-input>
@@ -87,11 +87,11 @@
         <el-form-item label="地址：" prop="address">
           <el-input v-model.trim="formAdd.address" autocomplete="off" placeholder="请输入地址" maxlength="50" clearable></el-input>
         </el-form-item>
-        <el-form-item label="是否分配：" prop="isLocated">
+        <!-- <el-form-item label="是否分配：" prop="isLocated">
           <el-select v-model="formAdd.isLocated" placeholder="请选择是否分配">
             <el-option v-for="item in judgeList" :key="item.value" :label="item.label" :value="item.value"></el-option>
           </el-select>
-        </el-form-item>
+        </el-form-item>-->
         <el-form-item label="备注：" prop="remark">
           <el-input type="textarea" style="width:250px" v-model.trim="formAdd.remark" autocomplete="off" placeholder="请填写" maxlength="200" clearable></el-input>
         </el-form-item>
@@ -202,6 +202,22 @@ export default {
         }
       })
     },
+    beforeAvatarUpload(file) {
+      const isLt2M = file.size < 1024 * 1024 * 5;
+      if (!isLt2M) {
+        this.$message.error('上传图片大小不能超过 5MB!');
+      }
+      return isLt2M;
+    },
+    // 上传成功
+    handleAvatarSuccess(res) {
+      console.log(res)
+      if (res.code === 0) {
+        this.$message.success('上传成功')
+      } else {
+        this.$message.error(res.message)
+      }
+    },
     // 新增客户
     addCustomer() {
       this.dialogAdd = true
@@ -230,13 +246,13 @@ export default {
     },
     // 回收此客户
     handleReset(data) {
-      this.$confirm( `您确定要回收客户(${data.name})吗?`, "提示", {
+      this.$confirm(`您确定要回收客户(${data.name})吗?`, "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
       }).then(res => {
         let params = {
-          id: data.id,
+          // id: data.id,
           locatedId: data.locatedId
         }
         recycleCustomer(params).then(res => {

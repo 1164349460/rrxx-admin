@@ -49,7 +49,7 @@ export default function (path, params, method = "get", headerType = "json", base
   // 当出现某些情况的时候设置请求拦截
   axios.interceptors.response.use(response => {
     if (response.data.code == 401) {
-      storage.removeCookie("token");
+      storage.removeStorage("token");
       router.push('/')
     }
     return response;

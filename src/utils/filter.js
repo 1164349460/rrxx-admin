@@ -67,10 +67,10 @@ Vue.filter("fillZero", function(value, length) {
 Vue.filter("contractStatus", function(value) {
   let data  = ""
   switch (value) {
-    case 0:
+    case 1:
       data = "员工组";
       break;
-    case 1:
+    case 0:
       data = "管理组";
       break;
   }

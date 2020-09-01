@@ -48,7 +48,7 @@ export default {
       dialogUser: false,
       totalElements: 0,
       currentRowId:'',
-      currPage: 1,
+      currPage: 0,
       filterList: {
         department: '',
         phone: '',

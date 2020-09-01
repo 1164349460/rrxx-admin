@@ -20,7 +20,7 @@
             <span>客户管理</span>
           </template>
           <!-- <el-menu-item index="/admin/customerManage/undistribution">未分配客户</el-menu-item> -->
-          <el-menu-item index="/admin/customerManage/distribution">分配客户</el-menu-item>
+          <el-menu-item index="/admin/customerManage/distribution">客户列表</el-menu-item>
         </el-submenu>
         <el-submenu index="5">
           <template slot="title">
