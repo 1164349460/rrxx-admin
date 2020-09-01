@@ -5,7 +5,7 @@
       <div class="cen-login">
         <div class="cen-box">
           <!-- <img src="../../assets/images/logo.png" alt class="cen-logo" /> -->
-          <p class="cen-article">CRM管理系统</p>
+          <p class="cen-article">客户管理系统</p>
         </div>
         <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="0" class="demo-ruleForm">
           <el-form-item prop="phone">

@@ -81,7 +81,8 @@ export default {
       let params = {
         page: this.currPage,
         size: 10,
-        ...this.filterList
+        ...this.filterList,
+        status:1,
       }
       queryUserListOfPage(params).then(res => {
         if (res.code === 0) {

@@ -7,13 +7,15 @@
       <el-table-column prop="created" label="创建时间"></el-table-column>
       <el-table-column prop="customerName" label="客户姓名" width="150" show-overflow-tooltip></el-table-column>
       <el-table-column prop="customerPhone" label="客户手机"></el-table-column>
-      <el-table-column prop="beginCall" label="开始呼出时间" show-overflow-tooltip></el-table-column>
-      <el-table-column prop="endCall" label="结束呼出时间"></el-table-column>
+      <el-table-column prop="userName" label="呼出员工姓名"></el-table-column>
+      <!-- <el-table-column prop="beginCall" label="开始呼出时间" show-overflow-tooltip></el-table-column>
+      <el-table-column prop="endCall" label="结束呼出时间"></el-table-column>-->
     </el-table>
-    <div class="flex-between">
+    <!-- <div class="flex-between">
       <el-button type="success" icon="el-icon-circle-plus-outline" plain size="small" @click="dialogAdd=true">新增通话数据</el-button>
       <Vpage :total="totalElements" :currPage="currPage" @currentChange="changePages"></Vpage>
-    </div>
+    </div>-->
+    <Vpage :total="totalElements" :currPage="currPage" @currentChange="changePages"></Vpage>
     <el-dialog title="新增通话数据" :visible.sync="dialogAdd" width="700px" center>
       <el-form :model="formData" :rules="callRules" label-width="150px" class="cen-form cen-editor" ref="formDom">
         <el-form-item label="呼出员工姓名：" prop="userName">
@@ -67,7 +69,7 @@ export default {
       filterList: {
         beginCall: '',
         endCall: '',
-        name: '',
+        customerName: '',
       },
       filterConfig: [
         {
@@ -81,7 +83,7 @@ export default {
           type: 'date'
         },
         {
-          code: "name",
+          code: "customerName",
           title: "客户姓名",
         },
       ]
@@ -115,7 +117,7 @@ export default {
     },
     // 点击分页
     changePages(e) {
-      this.currPage = e
+      this.currPage = e - 1
       this.dataInit()
     },
     // 获取焦点

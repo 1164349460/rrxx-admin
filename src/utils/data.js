@@ -16,7 +16,7 @@ export const sexList = [
 // 用户状态
 export const roleList = [
   { label: "正常", value: 1 },
-  { label: "冻结", value: 2 }
+  { label: "冻结", value: 0 }
 ];
 
 // 用户权限
@@ -33,6 +33,6 @@ export const userStatus = [
 
 // 客户分配状态
 export const distributionList = [
-  { label: "已分配", value: true },
-  { label: "未分配", value: false }
+  { label: "已分配", value: 1 },
+  { label: "未分配", value: 0 }
 ]

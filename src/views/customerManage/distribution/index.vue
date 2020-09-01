@@ -39,10 +39,13 @@
       <el-table-column prop="remark" label="备注">
         <template slot-scope="scoped">{{scoped.row.remark|emptyString}}</template>
       </el-table-column>
-      <el-table-column label="操作" width="150" fixed="right">
+      <el-table-column label="操作" width="220" fixed="right">
         <template slot-scope="scope">
+          <!-- <i class="el-icon-edit-outline"></i>
+          <i class="el-icon-delete"></i>-->
           <el-button size="mini" type="success" v-button @click="handleEdit(scope.row)">编辑</el-button>
           <el-button size="mini" type="danger" v-button @click="handleDelete(scope.row)">删除</el-button>
+          <el-button size="mini" type="warning" v-button v-if="scope.row.isLocated===1" @click="handleReset(scope.row)">回收</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -107,7 +110,7 @@
 import { tabHeader } from "@/utils/tool";
 import TableFilter from '@/components/TableFilter';
 import Vpage from '@/components/Vpage';
-import { queryCustomerListOfPage, operateCustomer, importCustomer, queryUserListOfPage, deleteCustomer } from '@/api/api';
+import { queryCustomerListOfPage, operateCustomer, importCustomer, queryUserListOfPage, deleteCustomer, recycleCustomer } from '@/api/api';
 import { judgeList, roleList, distributionList, userStatus } from '@/utils/data'
 import { customerRules } from '@/utils/valid'
 import EmployeeList from './components/EmployeeList'
@@ -225,6 +228,27 @@ export default {
         })
       })
     },
+    // 回收此客户
+    handleReset(data) {
+      this.$confirm( `您确定要回收客户(${data.name})吗?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      }).then(res => {
+        let params = {
+          id: data.id,
+          locatedId: data.locatedId
+        }
+        recycleCustomer(params).then(res => {
+          if (res.code === 0) {
+            this.dataInit()
+            this.$message.success("操作成功")
+          } else {
+            this.$message.error(res.message)
+          }
+        })
+      })
+    },
     // 关闭弹窗
     closeDialog() {
       this.$refs.formDom.resetFields()
@@ -232,14 +256,14 @@ export default {
     },
     // 新增客户信息
     submitForm(formName) {
-      console.log(this.formAdd,99)
+      console.log(this.formAdd, 99)
       this.$refs[formName].validate(valid => {
         if (valid) {
           operateCustomer(this.formAdd).then(res => {
             if (res.code === 0) {
               this.dialogAdd = false
               this.dataInit()
-              this.$message.success('新增成功')
+              this.$message.success('操作成功')
             } else {
               this.$message.error(res.message)
             }
@@ -251,7 +275,7 @@ export default {
     getData(data) {
       this.$set(this.formAdd, 'locatedName', data.name)
       this.$set(this.formAdd, 'locatedId', data.id)
-      console.log(data,666)
+      console.log(data, 666)
     },
     // 点击搜索
     getFilterList() {
@@ -259,8 +283,8 @@ export default {
       this.dataInit()
     },
     // 点击分页
-    changePages() {
-      this.currPage = e
+    changePages(e) {
+      this.currPage = e - 1
       this.dataInit()
     }
   }

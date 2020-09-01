@@ -60,6 +60,13 @@ export const deleteCustomer = function (params) {
   return https(url, params, "post");
 };
 
+//回收客户
+export const recycleCustomer = function (params) {
+  let url = "/net/customer/recycleCustomer";
+  return https(url, params, "post");
+};
+
+
 //---------------------------------------通话记录----------------------
 
 // 新增通话数据

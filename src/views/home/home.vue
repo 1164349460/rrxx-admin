@@ -3,7 +3,7 @@
   <el-container>
     <el-aside :width="isCollapse?'64px':'200px'">
       <div class="user-logo">
-        <img src="../../assets/images/logo.png" alt v-show="!isCollapse" />
+        <img src="../../assets/images/user-img.png" alt v-show="!isCollapse" />
         <p class="cen-name">管理员</p>
       </div>
       <el-menu default-active="1" class="el-menu-vertical-demo" background-color="#5895D3" text-color="#fff" active-text-color="#ffd04b" unique-opened router :collapse="isCollapse" collapse-transition>
@@ -227,7 +227,7 @@ export default {
     img {
       width: 70px;
       height: 70px;
-      border: 2px solid #fff;
+      // border: 2px solid #fff;
       border-radius: 50%;
     }
   }
