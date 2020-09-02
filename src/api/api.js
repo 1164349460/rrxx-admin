@@ -66,6 +66,17 @@ export const recycleCustomer = function (params) {
   return https(url, params, "post");
 };
 
+// 批量分配客户
+export const distributeCustomerBatch = function (params) {
+  let url = "/net/customer/distributeCustomerBatch";
+  return https(url, params, "post");
+};
+
+// 批量回收客户
+export const recycleCustomerBatch = function(parmas){
+  let url = "/net/customer/recycleCustomerBatch"
+  return https(url, parmas, "post");
+}
 
 //---------------------------------------通话记录----------------------
 

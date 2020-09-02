@@ -1,6 +1,7 @@
 <template>
   <div class="cen-employee">
     <el-dialog title="用户列表" :visible.sync="dialogUser" width="900px" center>
+      <table-filter @search="getFilterList" :config="filterConfig" :searchobj.sync="filterList"></table-filter>
       <el-table :data="tableData" :header-cell-style="tabHeader" style="width: 100%">
         <!-- <el-table-column type="index" label="序号" width="50"></el-table-column> -->
         <el-table-column type="index" label="单选" align="center" width="80">
@@ -29,10 +30,10 @@
         </el-table-column>
       </el-table>
       <Vpage :total="totalElements" :currPage="currPage+1" @currentChange="changePages"></Vpage>
-     <div class="flex-center">
+      <div class="flex-center">
         <el-button size="medium" v-button @click="dialogUser = false">取 消</el-button>
         <el-button size="medium" type="primary" v-button @click="handleSure()">确定</el-button>
-     </div>
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -40,6 +41,7 @@
 import { tabHeader } from "@/utils/tool";
 import { queryUserListOfPage } from "@/api/api"
 import Vpage from '@/components/Vpage';
+import TableFilter from '@/components/TableFilter';
 export default {
   data() {
     return {
@@ -47,14 +49,14 @@ export default {
       tableData: [],
       dialogUser: false,
       totalElements: 0,
-      currentRowId:'',
+      currentRowId: '',
       currPage: 0,
       filterList: {
         department: '',
         phone: '',
         name: ''
       },
-      userData:{},
+      userData: {},
       filterConfig: [
         {
           code: "name",
@@ -74,7 +76,7 @@ export default {
   created() {
     this.dataInit()
   },
-  components:{Vpage},
+  components: { Vpage, TableFilter },
   methods: {
     //   数据初始化
     dataInit() {
@@ -82,7 +84,7 @@ export default {
         page: this.currPage,
         size: 10,
         ...this.filterList,
-        status:1,
+        status: 1,
       }
       queryUserListOfPage(params).then(res => {
         if (res.code === 0) {
@@ -93,9 +95,14 @@ export default {
         }
       })
     },
+    // 点击搜索
+    getFilterList() {
+      this.currPage = 0
+      this.dataInit()
+    },
     // 点击分页
-    changePages(e){
-      this.currPage = e-1
+    changePages(e) {
+      this.currPage = e
       this.dataInit()
     },
     // 点击单选按钮
@@ -104,7 +111,7 @@ export default {
     },
     // 确定
     handleSure() {
-      this.$emit('getMessage',this.userData)
+      this.$emit('getMessage', this.userData)
       this.dialogUser = false
     },
   },

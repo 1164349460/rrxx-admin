@@ -83,10 +83,10 @@ Vue.filter("sexStatus", function(value) {
   let val = "" + value;
   switch (val) {
     case "0":
-      data = "女";
+      data = "男";
       break;
     case "1":
-      data = "男";
+      data = "女";
       break;
   }
   return data;

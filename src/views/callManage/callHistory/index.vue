@@ -8,14 +8,12 @@
       <el-table-column prop="customerName" label="客户姓名" width="150" show-overflow-tooltip></el-table-column>
       <el-table-column prop="customerPhone" label="客户手机"></el-table-column>
       <el-table-column prop="userName" label="呼出员工姓名"></el-table-column>
-      <!-- <el-table-column prop="beginCall" label="开始呼出时间" show-overflow-tooltip></el-table-column>
-      <el-table-column prop="endCall" label="结束呼出时间"></el-table-column>-->
     </el-table>
     <!-- <div class="flex-between">
       <el-button type="success" icon="el-icon-circle-plus-outline" plain size="small" @click="dialogAdd=true">新增通话数据</el-button>
       <Vpage :total="totalElements" :currPage="currPage" @currentChange="changePages"></Vpage>
     </div>-->
-    <Vpage :total="totalElements" :currPage="currPage" @currentChange="changePages"></Vpage>
+    <Vpage :total="totalElements" :currPage="currPage+1" @currentChange="changePages"></Vpage>
     <el-dialog title="新增通话数据" :visible.sync="dialogAdd" width="700px" center>
       <el-form :model="formData" :rules="callRules" label-width="150px" class="cen-form cen-editor" ref="formDom">
         <el-form-item label="呼出员工姓名：" prop="userName">
@@ -70,6 +68,7 @@ export default {
         beginCall: '',
         endCall: '',
         customerName: '',
+        userName:''
       },
       filterConfig: [
         {
@@ -86,6 +85,14 @@ export default {
           code: "customerName",
           title: "客户姓名",
         },
+         {
+          code: "customerPhone",
+          title: "客户手机",
+        },
+        {
+           code: "userName",
+          title: "呼出员工姓名",
+        }
       ]
     };
   },

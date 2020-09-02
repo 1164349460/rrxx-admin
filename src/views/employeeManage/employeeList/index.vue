@@ -32,10 +32,10 @@
     </el-table>
     <div class="flex-between">
       <el-button type="success" icon="el-icon-circle-plus-outline" plain size="small" @click="handleAdd">新增员工</el-button>
-      <Vpage :total="totalElements" :currPage="currPage" @currentChange="changePages"></Vpage>
+      <Vpage :total="totalElements" :currPage="currPage+1" @currentChange="changePages"></Vpage>
     </div>
 
-    <el-dialog title="员工信息" :visible.sync="dialogAdd" width="700px" @before-close="closeDialog" center>
+    <el-dialog title="员工信息" :visible.sync="dialogAdd" width="700px" :before-close="closeDialog" center>
       <el-form :model="formAdd" label-width="150px" :rules="employeeRules" class="cen-form cen-editor" ref="formAdd">
         <el-form-item label="员工姓名：" prop="name">
           <el-input v-model.trim="formAdd.name" autocomplete="off" placeholder="员工姓名" maxlength="16" clearable></el-input>

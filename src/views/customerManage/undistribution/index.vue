@@ -1,59 +1,112 @@
-<!-- 游戏列表 -->
+<!--未分配客户-->
 <template>
   <div class="cen-male">
     <table-filter @search="getFilterList" :config="filterConfig" :searchobj.sync="filterList"></table-filter>
-    <el-table :data="tableData" :header-cell-style="tabHeader" style="width: 100%">
+    <el-table :data="tableData" :header-cell-style="tabHeader" style="width: 100%;" @select="getSomeTable" @select-all="setAllTable" max-height="550">
       <el-table-column type="index" label="序号" width="50"></el-table-column>
-      <el-table-column prop="name" label="游戏id"></el-table-column>
-      <el-table-column prop="name" label="用户姓名"></el-table-column>
-      <el-table-column prop="address" label="游戏状态" width="150" show-overflow-tooltip></el-table-column>
-      <el-table-column prop="date" label="开始时间" width="120" show-overflow-tooltip></el-table-column>
-      <el-table-column prop="name" label="结束时间" width="120" show-overflow-tooltip></el-table-column>
-      <el-table-column prop="name" label="城市"></el-table-column>
-      <el-table-column prop="date" label="地图" width="150" show-overflow-tooltip></el-table-column>
-      <el-table-column prop="name" label="游戏类型"></el-table-column>
-      <el-table-column prop="name" label="累计游戏费用" width="120" show-overflow-tooltip></el-table-column>
-      <el-table-column prop="name" label="累计代金券" width="120" show-overflow-tooltip></el-table-column>
-      <el-table-column prop="date" label="累计余额金额" width="110" show-overflow-tooltip></el-table-column>
-      <el-table-column prop="name" label="累计支付金额" width="110" show-overflow-tooltip></el-table-column>
-      <el-table-column prop="name" label="累计奖励金额" width="110" show-overflow-tooltip></el-table-column>
-      <el-table-column label="操作" width="100" fixed="right">
+      <el-table-column type="selection" width="55"></el-table-column>
+      <el-table-column prop="locatedName" label="所属员工姓名" width="120" show-overflow-tooltip>
+        <template slot-scope="scoped">{{scoped.row.locatedName|emptyString}}</template>
+      </el-table-column>
+      <el-table-column prop="name" label="客户姓名" width="180" show-overflow-tooltip></el-table-column>
+      <el-table-column prop="phone" label="客户手机号" width="150" show-overflow-tooltip></el-table-column>
+      <el-table-column prop="status" label="客户状态">
+        <template slot-scope="scoped">
+          <el-tag size="mini" v-if="scoped.row.status===1">启用</el-tag>
+          <el-tag size="mini" type="danger" v-else>冻结</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="origin" label="来源">
+        <template slot-scope="scoped">{{scoped.row.origin|emptyString}}</template>
+      </el-table-column>
+      <el-table-column prop="isLocated" label="是否分配" show-overflow-tooltip>
+        <template slot-scope="scoped">
+          <el-tag size="mini" v-if="scoped.row.isLocated===1">已分配</el-tag>
+          <el-tag size="mini" type="danger" v-else>未分配</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="city" label="城市">
+        <template slot-scope="scoped">{{scoped.row.city|emptyString}}</template>
+      </el-table-column>
+      <el-table-column prop="score" label="评分">
+        <template slot-scope="scoped">{{scoped.row.score|emptyString}}</template>
+      </el-table-column>
+      <el-table-column prop="avgPrice" label="均价">
+        <template slot-scope="scoped">{{scoped.row.avgPrice|emptyString}}</template>
+      </el-table-column>
+      <el-table-column prop="score" label="地址" width="150" show-overflow-tooltip>
+        <template slot-scope="scoped">{{scoped.row.address|emptyString}}</template>
+      </el-table-column>
+      <el-table-column prop="remark" label="备注">
+        <template slot-scope="scoped">{{scoped.row.remark|emptyString}}</template>
+      </el-table-column>
+      <el-table-column label="操作" width="150" fixed="right">
         <template slot-scope="scope">
-          <el-button size="mini" type="success" v-button @click="handleEdit(scope.row)">详情</el-button>
+          <el-button size="mini" type="success" v-button @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button size="mini" type="danger" v-button @click="handleDelete(scope.row)">删除</el-button>
+          <!-- <el-button size="mini" type="warning" v-button v-if="scope.row.isLocated===1" @click="handleReset(scope.row)">回收</el-button> -->
         </template>
       </el-table-column>
     </el-table>
-    <el-dialog title="游戏详情" :visible.sync="dialogAdd" width="1100px" center>
-      <el-form :model="formAdd" label-width="150px" class="cen-form cen-editor" ref="formAdd">
-        <el-form-item label="游戏id:" prop="username">
-          <el-input v-model.trim="formAdd.username" autocomplete="off" placeholder="账号" maxlength="20" clearable></el-input>
+    <div class="flex-between">
+      <div>
+        <el-button type="danger" size="small" icon="el-icon-thumb" plain @click="handleDivide">分配客户</el-button>
+        <el-button type="success" icon="el-icon-circle-plus-outline" size="small" plain @click="addCustomer">新增客户</el-button>
+        <el-upload class="upload-demo" :action="importCustomer" :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
+          <el-button size="small" icon="el-icon-upload2" plain type="warning">导入客户信息</el-button>
+        </el-upload>
+      </div>
+      <!-- <Vpage :total="totalElements" :currPage="currPage+1" :pageSize="1000" @currentChange="changePages"></Vpage> -->
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="changePages"
+        :current-page="currPage+1"
+        :page-sizes="[50, 200, 500, 1000]"
+        :page-size="pageSize"
+        layout="total,sizes, prev, pager, next"
+        :total="totalElements"
+      ></el-pagination>
+    </div>
+    <!-- 新增客户信息 -->
+    <el-dialog title="客户信息" :visible.sync="dialogAdd" width="700px" :before-close="closeDialog" center>
+      <el-form :model="formAdd" label-width="150px" :rules="customerRules" class="cen-form cen-editor" ref="formDom">
+        <el-form-item label="所属员工姓名：" prop="locatedName">
+          <el-input v-model.trim="formAdd.locatedName" autocomplete="off" @focus="handleFocus" placeholder="所属员工姓名" maxlength="16" clearable></el-input>
         </el-form-item>
-        <el-form-item label="游戏状态：" prop="password">
-          <el-input v-model.trim="formAdd.password" autocomplete="off" placeholder="密码" clearable></el-input>
+        <el-form-item label="客户姓名：" prop="name">
+          <el-input v-model.trim="formAdd.name" autocomplete="off" placeholder="请输入客户姓名" maxlength="16" clearable></el-input>
         </el-form-item>
-        <el-form-item label="游戏地址：" prop="phone">
-          <el-input v-model.trim="formAdd.phone" autocomplete="off" placeholder="游戏地址" maxlength="11" clearable></el-input>
+        <el-form-item label="客户手机号：" prop="phone">
+          <el-input v-model.trim="formAdd.phone" autocomplete="off" placeholder="请输入客户手机号" maxlength="11" clearable></el-input>
         </el-form-item>
-        <el-form-item label="游戏类型：" prop="phone">
-          <el-input v-model.trim="formAdd.phone" autocomplete="off" placeholder="游戏类型" maxlength="11" clearable></el-input>
+        <el-form-item label="客户状态：" prop="status">
+          <el-select v-model="formAdd.status" placeholder="请选择客户状态">
+            <el-option v-for="item in roleList" :key="item.value" :label="item.label" :value="item.value"></el-option>
+          </el-select>
         </el-form-item>
-        <h4 class="cen-title">玩家及交易信息：</h4>
-        <el-table :data="gameList" :header-cell-style="tabHeader" show-summary>
-          <el-table-column type="index" label="序号" width="50"></el-table-column>
-          <el-table-column prop="date" label="玩家姓名"></el-table-column>
-          <el-table-column prop="name" label="玩家角色"></el-table-column>
-          <el-table-column prop="address" label="是否锁定" show-overflow-tooltip></el-table-column>
-          <el-table-column prop="date" label="健康值"></el-table-column>
-          <el-table-column prop="name" label="游戏结果"></el-table-column>
-          <el-table-column prop="gameMoney" label="累计游戏费用" show-overflow-tooltip></el-table-column>
-          <el-table-column prop="gameMoney" label="累计代金券" show-overflow-tooltip></el-table-column>
-          <el-table-column prop="gameMoney" label="累计余额金额"></el-table-column>
-          <el-table-column prop="gameMoney" label="累计奖励金额"></el-table-column>
-        </el-table>
-        <div class="cen-sum">收入：251222元</div>
+        <el-form-item label="所在城市：" prop="city">
+          <el-input v-model.trim="formAdd.city" autocomplete="off" placeholder="请输入城市" maxlength="50" clearable></el-input>
+        </el-form-item>
+        <el-form-item label="均价：" prop="avgPrice">
+          <el-input v-model.number="formAdd.avgPrice" autocomplete="off" placeholder="请输入均价" maxlength="11" clearable></el-input>
+        </el-form-item>
+        <el-form-item label="评分：" prop="score">
+          <el-input v-model.number="formAdd.score" autocomplete="off" placeholder="请输入评分" maxlength="11" clearable></el-input>
+        </el-form-item>
+        <el-form-item label="地址：" prop="address">
+          <el-input v-model.trim="formAdd.address" autocomplete="off" placeholder="请输入地址" maxlength="50" clearable></el-input>
+        </el-form-item>
+        <el-form-item label="备注：" prop="remark">
+          <el-input type="textarea" style="width:250px" v-model.trim="formAdd.remark" autocomplete="off" placeholder="请填写" maxlength="200" clearable></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button size="medium" v-button @click="closeDialog">取 消</el-button>
+          <el-button size="medium" type="primary" v-button @click="submitForm('formDom')">提 交</el-button>
+        </el-form-item>
       </el-form>
     </el-dialog>
-    <Vpage :total="totalElements" :currPage="currPage" @currentChange="changePages"></Vpage>
+    <!-- 员工列表信息 -->
+    <employee-list ref="employeeDom" @getMessage="getData"></employee-list>
   </div>
 </template>
 
@@ -61,75 +114,234 @@
 import { tabHeader } from "@/utils/tool";
 import TableFilter from '@/components/TableFilter';
 import Vpage from '@/components/Vpage';
+import { queryCustomerListOfPage, operateCustomer, importCustomer, deleteCustomer, recycleCustomer, distributeCustomerBatch } from '@/api/api';
+import { judgeList, roleList, distributionList, userStatus } from '@/utils/data'
+import { customerRules } from '@/utils/valid'
+import EmployeeList from './components/EmployeeList'
 export default {
   data() {
     return {
       tabHeader,
-      dialogAdd: false,
-      totalElements: 20,
-      currPage: 1,
+      judgeList,
+      roleList,
+      customerRules,
+      importCustomer,
+      totalElements: 0,
+      currPage: 0,
+      pageSize: 500,
+      dialogAdd: false,//新增弹窗
+      userList: [],
       tableData: [],
-      gameList: [],
       formAdd: {},
       filterList: {
-        applicateTime: '',
-        city: '',
-        sex: '',
-        name: ''
+        locatedName: '',
+        name: '',
+        phone: '',
+        isLocated: 0,
+        status: '',
+        keywordSearch: ''
       },
       filterConfig: [
         {
-          code: "applicateTime",
-          title: "支付时间",
-          type: 'date'
+          code: "status",
+          title: "客户状态",
+          type: 'select',
+          options: userStatus,
         },
-        {
-          code: "city",
-          title: "城市",
-          type: 'select'
-        },
-        {
-          code: "sex",
-          title: "游戏类型",
-          type: 'select'
-        },
+        // {
+        //   code: "locatedName",
+        //   title: "所属员工名称",
+        // },
         {
           code: "name",
-          title: "用户名",
+          title: "客户姓名",
+        },
+        {
+          code: "phone",
+          title: "客户手机号",
+        },
+        {
+          code: "keywordSearch",
+          title: "关键字",
         },
       ]
     };
   },
-  components: { TableFilter, Vpage },
-  created() { },
+  components: { TableFilter, Vpage, EmployeeList },
+  created() {
+    this.dataInit()
+  },
   methods: {
-    // 点击搜索
-    getFilterList() { },
-    handleEdit() {
+    // 数据初始化
+    dataInit() {
+      let params = {
+        page: this.currPage,
+        size: this.pageSize,
+        ...this.filterList
+      }
+      queryCustomerListOfPage(params).then(res => {
+        if (res.code === 0) {
+          this.tableData = res.data.content
+          this.totalElements = res.data.totalElements
+        } else {
+          this.$message.error(res.message)
+        }
+      })
+    },
+    // 点击某几个
+    getSomeTable(row) {
+      this.userList = row
+    },
+    // 点击全选
+    setAllTable(row) {
+      this.userList = row
+    },
+    // 分配客户
+    handleDivide() {
+      if (!this.userList.length) {
+        this.$message.warning('请先勾选客户，在进行分配操作')
+        return;
+      }
+
+      this.$refs.employeeDom.dialogUser = true
+    },
+    // 获取焦点
+    handleFocus() {
+      this.$refs.employeeDom.dialogUser = true
+    },
+    beforeAvatarUpload(file) {
+      const isLt2M = file.size < 1024 * 1024 * 5;
+      if (!isLt2M) {
+        this.$message.error('上传图片大小不能超过 5MB!');
+      }
+      return isLt2M;
+    },
+    // 上传成功
+    handleAvatarSuccess(res) {
+      console.log(res)
+      if (res.code === 0) {
+        this.$message.success('上传成功')
+      } else {
+        this.$message.error(res.message)
+      }
+    },
+    // 新增客户
+    addCustomer() {
       this.dialogAdd = true
     },
+    // 编辑客户
+    handleEdit(data) {
+      this.dialogAdd = true
+      this.formAdd = JSON.parse(JSON.stringify(data))
+    },
+    // 删除客户
+    handleDelete(data) {
+      this.$confirm("您确定要删除该客户吗?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      }).then(res => {
+        deleteCustomer({ id: data.id }).then(res => {
+          if (res.code === 0) {
+            this.dataInit()
+            this.$message.success('客户删除成功')
+          } else {
+            this.$message.error(res.message)
+          }
+        })
+      })
+    },
+    // 回收此客户
+    handleReset(data) {
+      this.$confirm(`您确定要回收客户(${data.name})吗?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      }).then(res => {
+        let params = {
+          // id: data.id,
+          locatedId: data.locatedId
+        }
+        recycleCustomer(params).then(res => {
+          if (res.code === 0) {
+            this.dataInit()
+            this.$message.success("操作成功")
+          } else {
+            this.$message.error(res.message)
+          }
+        })
+      })
+    },
+    // 关闭弹窗
+    closeDialog() {
+      console.log('在奇偶性OMG')
+      this.$refs.formDom.resetFields()
+      this.dialogAdd = false
+    },
+    // 新增客户信息
+    submitForm(formName) {
+      console.log(this.formAdd, 99)
+      this.$refs[formName].validate(valid => {
+        if (valid) {
+          operateCustomer(this.formAdd).then(res => {
+            if (res.code === 0) {
+              this.dialogAdd = false
+              this.dataInit()
+              this.$message.success('操作成功')
+            } else {
+              this.$message.error(res.message)
+            }
+          })
+        }
+      })
+    },
+    // 获取弹窗中的参数locaeName
+    getData(data) {
+      this.$set(this.formAdd, 'locatedName', data.name)
+      this.$set(this.formAdd, 'locatedId', data.id)
+      if (!this.userList.length) {
+        return
+      }
+      let ids = this.userList.map(item => {
+        return item.id
+      })
+
+      let params = {
+        ids,
+        locatedId: this.formAdd.locatedId
+      }
+      distributeCustomerBatch(params).then(res => {
+        if (res.code === 0) {
+          this.dataInit()
+          this.$message.success('分配成功')
+        } else {
+          this.$message.error(res.message)
+        }
+      })
+    },
+    // 点击搜索
+    getFilterList() {
+      this.currPage = 0
+      this.dataInit()
+    },
+    handleSizeChange(e) {
+      this.pageSize = e
+    },
     // 点击分页
-    changePages() { }
+    changePages(e) {
+      this.currPage = e - 1
+      this.dataInit()
+    }
   }
 }
 
 </script>
 <style lang='less' scoped>
-.cen-form{
-  .cen-title{
-    margin:20px 20px 10px 20px;
-    font-size: 18px;
-  }
-  .el-table{
-    // margin:0 20px;
-  }
-}
-
-.cen-sum{
-  font-size:18px;
-  text-align: right;
+.flex-between{
   margin-top:20px;
-  padding:0 20px;
-  color:#d62929;
+}
+.upload-demo {
+  float: left;
+  margin-right: 20px;
 }
 </style>

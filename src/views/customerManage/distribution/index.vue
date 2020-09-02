@@ -1,9 +1,10 @@
-<!-- -->
+<!--已分配客户 -->
 <template>
   <div class="cen-male">
     <table-filter @search="getFilterList" :config="filterConfig" :searchobj.sync="filterList"></table-filter>
-    <el-table :data="tableData" :header-cell-style="tabHeader" style="width: 100%">
+    <el-table :data="tableData" :header-cell-style="tabHeader" style="width: 100%" @select="getSomeTable" @select-all="setAllTable">
       <el-table-column type="index" label="序号" width="50"></el-table-column>
+      <el-table-column type="selection" width="55"></el-table-column>
       <el-table-column prop="locatedName" label="所属员工姓名" width="120" show-overflow-tooltip>
         <template slot-scope="scoped">{{scoped.row.locatedName|emptyString}}</template>
       </el-table-column>
@@ -39,27 +40,35 @@
       <el-table-column prop="remark" label="备注">
         <template slot-scope="scoped">{{scoped.row.remark|emptyString}}</template>
       </el-table-column>
-      <el-table-column label="操作" width="220" fixed="right">
+      <el-table-column label="操作" width="150" fixed="right">
         <template slot-scope="scope">
-          <!-- <i class="el-icon-edit-outline"></i>
-          <i class="el-icon-delete"></i>-->
           <el-button size="mini" type="success" v-button @click="handleEdit(scope.row)">编辑</el-button>
           <el-button size="mini" type="danger" v-button @click="handleDelete(scope.row)">删除</el-button>
-          <el-button size="mini" type="warning" v-button v-if="scope.row.isLocated===1" @click="handleReset(scope.row)">回收</el-button>
+          <!-- <el-button size="mini" type="warning" v-button v-if="scope.row.isLocated===1" @click="handleReset(scope.row)">回收</el-button> -->
         </template>
       </el-table-column>
     </el-table>
     <div class="flex-between">
-      <div>
+      <!-- <div>
         <el-button type="success" icon="el-icon-circle-plus-outline" size="small" plain @click="addCustomer">新增客户</el-button>
         <el-upload class="upload-demo" :action="importCustomer" :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
           <el-button size="small" icon="el-icon-upload2" plain type="warning">导入客户信息</el-button>
         </el-upload>
-      </div>
-      <Vpage :total="totalElements" :currPage="currPage" @currentChange="changePages"></Vpage>
+      </div>-->
+      <el-button size="small" type="warning" icon="el-icon-d-caret" v-button plain @click="handleReset">回收客户</el-button>
+      <!-- <Vpage :total="totalElements" :currPage="currPage+1" :pageSize="50" @currentChange="changePages"></Vpage> -->
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="changePages"
+        :current-page="currPage+1"
+        :page-sizes="[50, 200, 500, 1000]"
+        :page-size="pageSize"
+        layout="total,sizes, prev, pager, next"
+        :total="totalElements"
+      ></el-pagination>
     </div>
     <!-- 新增客户信息 -->
-    <el-dialog title="客户信息" :visible.sync="dialogAdd" width="700px" @before-close="closeDialog" center>
+    <el-dialog title="客户信息" :visible.sync="dialogAdd" width="700px" :before-close="closeDialog" center>
       <el-form :model="formAdd" label-width="150px" :rules="customerRules" class="cen-form cen-editor" ref="formDom">
         <el-form-item label="所属员工姓名：" prop="locatedName">
           <el-input v-model.trim="formAdd.locatedName" autocomplete="off" @focus="handleFocus" placeholder="所属员工姓名" maxlength="16" clearable></el-input>
@@ -110,7 +119,7 @@
 import { tabHeader } from "@/utils/tool";
 import TableFilter from '@/components/TableFilter';
 import Vpage from '@/components/Vpage';
-import { queryCustomerListOfPage, operateCustomer, importCustomer, queryUserListOfPage, deleteCustomer, recycleCustomer } from '@/api/api';
+import { queryCustomerListOfPage, operateCustomer, importCustomer, queryUserListOfPage, deleteCustomer, recycleCustomerBatch } from '@/api/api';
 import { judgeList, roleList, distributionList, userStatus } from '@/utils/data'
 import { customerRules } from '@/utils/valid'
 import EmployeeList from './components/EmployeeList'
@@ -124,26 +133,20 @@ export default {
       importCustomer,
       totalElements: 0,
       currPage: 0,
-      currDialogPage: 0,//新增弹窗分页
-      totalDialogElements: 0,//弹窗总页数
+      pageSize: 50,
       dialogAdd: false,//新增弹窗
       tableData: [],
       formAdd: {},
-      employeeList: [],//员工列表
+      userList: [],
       filterList: {
         locatedName: '',
         name: '',
-        isLocated: '',
-        status: ''
+        isLocated: 1,
+        status: '',
+        keywordSearch: '',
+        phone: ''
       },
       filterConfig: [
-
-        {
-          code: "isLocated",
-          title: "是否分配",
-          type: 'select',
-          options: distributionList,
-        },
         {
           code: "status",
           title: "客户状态",
@@ -158,20 +161,33 @@ export default {
           code: "name",
           title: "客户姓名",
         },
+        {
+          code: "phone",
+          title: "客户手机号",
+        },
+        {
+          code: "keywordSearch",
+          title: "关键字",
+        },
       ]
     };
   },
   components: { TableFilter, Vpage, EmployeeList },
   created() {
     this.dataInit()
-    this.getUser()
+    // this.getUser()
+  },
+  computed: {
+    getPages() {
+      return this.currPage + 1
+    }
   },
   methods: {
     // 数据初始化
     dataInit() {
       let params = {
         page: this.currPage,
-        size: 10,
+        size: this.pageSize,
         ...this.filterList
       }
       queryCustomerListOfPage(params).then(res => {
@@ -186,21 +202,6 @@ export default {
     // 获取焦点
     handleFocus() {
       this.$refs.employeeDom.dialogUser = true
-    },
-    // 获取用户列表
-    getUser() {
-      let params = {
-        page: this.currDialogPage,
-        size: 10,
-      }
-      queryUserListOfPage(params).then(res => {
-        if (res.code === 0) {
-          this.employeeList = res.data.content
-          this.totalDialogElements = res.data.totalElements
-        } else {
-          this.$message.error(res.message)
-        }
-      })
     },
     beforeAvatarUpload(file) {
       const isLt2M = file.size < 1024 * 1024 * 5;
@@ -244,18 +245,33 @@ export default {
         })
       })
     },
+    // 点击某几个
+    getSomeTable(row) {
+      this.userList = row
+    },
+    // 点击全选
+    setAllTable(row) {
+      this.userList = row
+    },
     // 回收此客户
     handleReset(data) {
-      this.$confirm(`您确定要回收客户(${data.name})吗?`, "提示", {
+      if (!this.userList.length) {
+        this.$message.warning('请先勾选客户，再进行回收客户操作')
+        return
+      }
+      this.$confirm(`您确定要回收客户吗?`, "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
       }).then(res => {
+        let ids = this.userList.map(item => {
+          return item.id
+        })
         let params = {
-          // id: data.id,
-          locatedId: data.locatedId
+          ids: ids,
+          // locatedId: data.locatedId
         }
-        recycleCustomer(params).then(res => {
+        recycleCustomerBatch(params).then(res => {
           if (res.code === 0) {
             this.dataInit()
             this.$message.success("操作成功")
@@ -302,12 +318,20 @@ export default {
     changePages(e) {
       this.currPage = e - 1
       this.dataInit()
+    },
+    // 修改分页数
+    handleSizeChange(e) {
+      this.pageSize = e
+      console.log('分页数', e)
     }
   }
 }
 
 </script>
 <style lang='less' scoped>
+.flex-between{
+  margin-top:20px;
+}
 .upload-demo {
   float: left;
   margin-right: 20px;
